@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>גריין דיי · ניהול תוכן</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600&family=Secular+One&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ground:#F5F9F0; --ink:#122B1D; --leaf:#2BA84A; --herb:#E4F0DC;
+  --card:#fff; --line:#DCE7D4; --muted:#5F7A66; --danger:#B3261E; --danger-bg:#FDECEA;
+  --radius:10px;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);font:15px/1.6 Rubik,system-ui,sans-serif}
+h1,h2,h3{font-family:'Secular One',Rubik,sans-serif;font-weight:400;margin:0}
+button{font:inherit;cursor:pointer;border-radius:var(--radius);border:1px solid var(--line);background:var(--card);color:var(--ink);padding:8px 14px}
+button:hover{border-color:var(--leaf)}
+button.primary{background:var(--leaf);color:#fff;border-color:var(--leaf)}
+button.primary:hover{filter:brightness(.93)}
+button.ghost{background:transparent;border-color:transparent;color:var(--muted)}
+button:disabled{opacity:.45;cursor:not-allowed}
+input,textarea,select{font:inherit;width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:var(--radius);background:var(--card);color:var(--ink)}
+textarea{resize:vertical;min-height:76px;line-height:1.65}
+input:focus,textarea:focus,select:focus{outline:2px solid var(--leaf);outline-offset:-1px;border-color:var(--leaf)}
+label{display:block;font-size:13px;color:var(--muted);margin:0 0 4px}
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px 80px}
+
+/* login */
+#login{min-height:100vh;display:grid;place-items:center}
+#login .box{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:32px;width:340px;text-align:center}
+#login h1{font-size:26px;margin-bottom:6px}
+#login p{color:var(--muted);font-size:14px;margin:0 0 22px}
+#login input{text-align:center;margin-bottom:12px}
+
+header{background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20}
+header .bar{max-width:1180px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;gap:16px}
+header h1{font-size:20px;flex:1}
+nav{display:flex;gap:4px;border-bottom:1px solid var(--line);background:var(--card)}
+nav .inner{max-width:1180px;margin:0 auto;padding:0 20px;display:flex;gap:4px;width:100%}
+nav button{border:0;border-radius:0;border-bottom:2px solid transparent;background:none;padding:11px 16px;color:var(--muted)}
+nav button.on{color:var(--ink);border-bottom-color:var(--leaf);font-weight:500}
+nav button:hover{border-color:transparent;border-bottom-color:var(--line);color:var(--ink)}
+
+.toolbar{display:flex;align-items:center;gap:12px;margin:22px 0 14px}
+.toolbar h2{font-size:19px;flex:1}
+.toolbar .count{color:var(--muted);font-size:13px}
+.search{max-width:260px}
+
+.row{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px;margin-bottom:8px;display:grid;grid-template-columns:150px 1fr auto;gap:14px;align-items:start;cursor:pointer}
+.row:hover{border-color:var(--leaf)}
+.row.open{border-color:var(--leaf);cursor:default}
+.rid{font-family:ui-monospace,Menlo,monospace;font-size:12px;color:var(--muted);word-break:break-all;padding-top:2px}
+.rtext{white-space:pre-wrap}
+.tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}
+.tag{font-size:11px;background:var(--herb);color:#2C5138;padding:2px 7px;border-radius:99px}
+.tag.no{background:#FBE9E7;color:#8A2C22}
+.pill{font-size:11px;padding:3px 9px;border-radius:99px;background:var(--herb);color:#2C5138;white-space:nowrap}
+.pill.esc{background:#FFF1DC;color:#7A4E08}
+.pill.off{background:#EEE;color:#777}
+
+.editor{background:var(--card);border:1px solid var(--leaf);border-radius:var(--radius);padding:18px;margin-bottom:10px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.field{margin-bottom:14px}
+.hint{font-size:12px;color:var(--muted);margin-top:4px}
+.actions{display:flex;gap:8px;align-items:center;margin-top:8px;padding-top:14px;border-top:1px solid var(--line)}
+.actions .sp{flex:1}
+
+.lint{margin:12px 0;border-radius:var(--radius);padding:11px 13px;font-size:13.5px}
+.lint.bad{background:var(--danger-bg);border:1px solid #F3C4BF}
+.lint.ok{background:var(--herb);border:1px solid #C6DFB8;color:#2C5138}
+.lint b{display:block;margin-bottom:5px}
+.lint ul{margin:0;padding-inline-start:18px}
+.lint li{margin-bottom:3px}
+.lint code{font-size:12px;opacity:.75}
+
+.empty{text-align:center;padding:50px;color:var(--muted)}
+.events{font-size:13px;color:var(--muted)}
+.events div{padding:5px 0;border-bottom:1px solid var(--line)}
+#toast{position:fixed;bottom:22px;inset-inline-start:22px;background:var(--ink);color:#fff;padding:11px 18px;border-radius:var(--radius);opacity:0;transform:translateY(8px);transition:.22s;pointer-events:none;z-index:50}
+#toast.show{opacity:1;transform:none}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+
+<div id="login">
+  <div class="box">
+    <h1>גריין דיי</h1>
+    <p>ניהול תוכן</p>
+    <input id="pw" type="password" placeholder="סיסמה" autocomplete="current-password">
+    <button class="primary" style="width:100%" onclick="login()">כניסה</button>
+    <div id="lerr" style="color:var(--danger);font-size:13px;margin-top:10px"></div>
+  </div>
+</div>
+
+<div id="app" class="hidden">
+  <header><div class="bar">
+    <h1>ניהול תוכן</h1>
+    <button class="ghost" onclick="load()">רענון</button>
+    <button class="ghost" onclick="logout()">יציאה</button>
+  </div></header>
+  <nav><div class="inner">
+    <button data-tab="replies" class="on">נוסחי הבוט</button>
+    <button data-tab="facts">עובדות העסק</button>
+    <button data-tab="ivr">תסריטי מרכזייה</button>
+    <button data-tab="guides">מדריכים</button>
+    <button data-tab="events">היסטוריה</button>
+  </div></nav>
+  <div class="wrap"><div id="view"></div></div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const API = 'https://ugevcdpfksvzujsxoauz.supabase.co/functions/v1/content'
+let KEY = sessionStorage.getItem('gd_key') || ''
+let DATA = { replies: [], facts: [], ivr: [], guides: [], events: [] }
+let TAB = 'replies'
+let EDITING = null
+let FILTER = ''
+
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]))
+
+async function api (payload) {
+  const r = await fetch(API, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ ...payload, key: KEY, who: 'יוסי' })
+  })
+  return r.json()
+}
+
+function toast (msg) {
+  const t = document.getElementById('toast')
+  t.textContent = msg; t.classList.add('show')
+  setTimeout(() => t.classList.remove('show'), 2600)
+}
+
+async function login () {
+  KEY = document.getElementById('pw').value.trim()
+  const res = await api({ action: 'list' })
+  if (res.error) { document.getElementById('lerr').textContent = res.error; return }
+  sessionStorage.setItem('gd_key', KEY)
+  document.getElementById('login').classList.add('hidden')
+  document.getElementById('app').classList.remove('hidden')
+  DATA = res; render()
+}
+function logout () { sessionStorage.removeItem('gd_key'); location.reload() }
+
+async function load () {
+  const res = await api({ action: 'list' })
+  if (res.error) return toast(res.error)
+  DATA = res; EDITING = null; render(); toast('רוענן')
+}
+
+document.querySelectorAll('nav button').forEach(b => b.onclick = () => {
+  TAB = b.dataset.tab; EDITING = null; FILTER = ''
+  document.querySelectorAll('nav button').forEach(x => x.classList.toggle('on', x === b))
+  render()
+})
+
+// ---------- נוסחי הבוט ----------
+function replyRow (r) {
+  if (EDITING === 'replies:' + r.reply_id) return replyEditor(r)
+  const tags = [
+    ...(r.triggers_any || []).slice(0, 6).map(t => `<span class="tag">${esc(t)}</span>`),
+    ...(r.triggers_none || []).slice(0, 3).map(t => `<span class="tag no">לא: ${esc(t)}</span>`)
+  ].join('')
+  const more = (r.triggers_any || []).length > 6 ? `<span class="tag">ועוד ${r.triggers_any.length - 6}</span>` : ''
+  return `<div class="row" onclick="edit('replies','${esc(r.reply_id)}')">
+    <div class="rid">${esc(r.reply_id)}<div style="margin-top:5px">
+      <span class="pill">${r.priority}</span>
+      ${r.escalates ? '<span class="pill esc">מסלים</span>' : ''}
+      ${r.is_active ? '' : '<span class="pill off">כבוי</span>'}
+    </div></div>
+    <div><div class="rtext">${esc(r.text_he)}</div>
+      ${r.trigger_mode ? `<div class="hint">מופעל אוטומטית: ${esc(r.trigger_mode)}</div>` : ''}
+      <div class="tags">${tags}${more}</div></div>
+    <div class="pill" style="background:transparent;color:var(--muted)">עריכה</div>
+  </div>`
+}
+
+function replyEditor (r) {
+  const j = a => (a || []).join(', ')
+  return `<div class="editor" id="ed">
+    <div class="grid3">
+      <div class="field"><label>מזהה</label><input id="f_reply_id" value="${esc(r.reply_id)}" ${r.reply_id ? 'readonly' : ''}></div>
+      <div class="field"><label>עדיפות (גבוה נבדק קודם)</label><input id="f_priority" type="number" value="${r.priority ?? 50}"></div>
+      <div class="field"><label>מצב</label><select id="f_flags">
+        <option value="plain" ${!r.escalates ? 'selected' : ''}>עונה ולא מעביר</option>
+        <option value="esc" ${r.escalates ? 'selected' : ''}>מעביר לנציג</option>
+      </select></div>
+    </div>
+    <div class="field"><label>מה הבוט אומר</label>
+      <textarea id="f_text_he" oninput="liveLint()">${esc(r.text_he)}</textarea>
+      <div class="hint">פנייה ברבים, בלי קו מפריד, עד 220 תווים. אימוג'י רק בהודעת פתיחה.</div>
+    </div>
+    <div id="lintbox"></div>
+    <div class="grid2">
+      <div class="field"><label>מילים שמפעילות (מופרדות בפסיק)</label>
+        <textarea id="f_any">${esc(j(r.triggers_any))}</textarea></div>
+      <div class="field"><label>מילים שחוסמות</label>
+        <textarea id="f_none">${esc(j(r.triggers_none))}</textarea>
+        <div class="hint">אם אחת מהן מופיעה, הנוסח הזה לא ייבחר.</div></div>
+    </div>
+    <div class="field"><label>הערה פנימית (לא נשלח ללקוח)</label><textarea id="f_why">${esc(r.why)}</textarea></div>
+    <div class="actions">
+      <button class="primary" onclick="saveReply()">שמירה</button>
+      <button onclick="cancel()">ביטול</button>
+      <div class="sp"></div>
+      <label style="display:flex;gap:6px;align-items:center;margin:0;cursor:pointer">
+        <input type="checkbox" id="f_active" ${r.is_active !== false ? 'checked' : ''} style="width:auto"> פעיל
+      </label>
+      ${r.reply_id ? `<button class="ghost" style="color:var(--danger)" onclick="del('replies','${esc(r.reply_id)}')">מחיקה</button>` : ''}
+    </div>
+  </div>`
+}
+
+let lintTimer
+function liveLint () {
+  clearTimeout(lintTimer)
+  lintTimer = setTimeout(async () => {
+    const row = collectReply()
+    const res = await api({ action: 'lint', row })
+    const box = document.getElementById('lintbox')
+    if (!box) return
+    if (!res.errors || !res.errors.length) {
+      box.innerHTML = '<div class="lint ok">הנוסח עובר את כל הבדיקות</div>'
+    } else {
+      box.innerHTML = `<div class="lint bad"><b>${res.errors.length} דברים לתקן לפני שמירה</b><ul>` +
+        res.errors.map(e => `<li>${esc(e.msg)} <code>${esc(e.code)}</code></li>`).join('') + '</ul></div>'
+    }
+  }, 400)
+}
+
+const splitList = s => String(s || '').split(',').map(x => x.trim()).filter(Boolean)
+
+function collectReply () {
+  const g = id => document.getElementById(id)
+  return {
+    reply_id: g('f_reply_id').value.trim(),
+    text_he: g('f_text_he').value.trim(),
+    priority: +g('f_priority').value || 50,
+    escalates: g('f_flags').value === 'esc',
+    triggers_any: splitList(g('f_any').value),
+    triggers_none: splitList(g('f_none').value),
+    triggers_all: [],
+    why: g('f_why').value.trim() || null,
+    is_active: g('f_active').checked
+  }
+}
+
+async function saveReply () {
+  const row = collectReply()
+  if (!row.reply_id) return toast('חסר מזהה')
+  const orig = DATA.replies.find(x => x.reply_id === row.reply_id)
+  if (orig) { row.trigger_mode = orig.trigger_mode; row.covers = orig.covers; row.sort_order = orig.sort_order }
+  const res = await api({ action: 'save', kind: 'replies', row })
+  if (res.blocked) {
+    document.getElementById('lintbox').innerHTML =
+      `<div class="lint bad"><b>לא נשמר. ${res.errors.length} דברים לתקן:</b><ul>` +
+      res.errors.map(e => `<li>${esc(e.msg)} <code>${esc(e.code)}</code></li>`).join('') + '</ul></div>'
+    return toast('לא נשמר, יש מה לתקן')
+  }
+  if (res.error) return toast(res.error)
+  toast('נשמר. הבוט משתמש בזה בשיחה הבאה')
+  await load()
+}
+
+// ---------- טבלאות פשוטות ----------
+const SIMPLE = {
+  facts: {
+    key: 'topic', title: 'עובדות העסק', add: 'עובדה חדשה',
+    fields: [
+      { k: 'section', label: 'קטגוריה', type: 'text' },
+      { k: 'topic', label: 'נושא', type: 'text', keyish: true },
+      { k: 'answer_he', label: 'התשובה', type: 'area' },
+      { k: 'notes', label: 'הערה פנימית', type: 'area' }
+    ],
+    line: r => `<div class="rid">${esc(r.section)}${r.is_public === false ? '<div style="margin-top:5px"><span class="pill off">פנימי</span></div>' : ''}</div>
+      <div><b>${esc(r.topic)}</b><div class="rtext" style="margin-top:3px">${esc(r.answer_he)}</div>
+      ${r.notes ? `<div class="hint">${esc(r.notes)}</div>` : ''}</div>`
+  },
+  ivr: {
+    key: 'script_id', title: 'תסריטי המרכזייה', add: 'תסריט חדש',
+    fields: [
+      { k: 'script_id', label: 'מזהה', type: 'text', keyish: true },
+      { k: 'title', label: 'כותרת', type: 'text' },
+      { k: 'text_he', label: 'מה נאמר בטלפון', type: 'area' },
+      { k: 'audio_file', label: 'קובץ ההקלטה', type: 'text' },
+      { k: 'notes', label: 'הערה', type: 'area' }
+    ],
+    line: r => `<div class="rid">${esc(r.script_id)}</div>
+      <div><b>${esc(r.title)}</b><div class="rtext" style="margin-top:3px">${esc(r.text_he) || '<span style="color:var(--muted)">טרם נוסח</span>'}</div>
+      ${r.notes ? `<div class="hint">${esc(r.notes)}</div>` : ''}</div>`
+  },
+  guides: {
+    key: 'slug', title: 'מדריכים לצוות', add: 'מדריך חדש',
+    fields: [
+      { k: 'slug', label: 'מזהה', type: 'text', keyish: true },
+      { k: 'title', label: 'כותרת', type: 'text' },
+      { k: 'category', label: 'קטגוריה', type: 'text' },
+      { k: 'body_md', label: 'תוכן המדריך', type: 'area', big: true }
+    ],
+    line: r => `<div class="rid">${esc(r.category)}</div>
+      <div><b>${esc(r.title)}</b><div class="hint">${esc(String(r.body_md || '').slice(0, 140))}…</div></div>`
+  }
+}
+
+function simpleRow (kind, r) {
+  const cfg = SIMPLE[kind]
+  const id = r[cfg.key]
+  if (EDITING === kind + ':' + id) return simpleEditor(kind, r)
+  return `<div class="row" onclick="edit('${kind}','${esc(id)}')">
+    ${cfg.line(r)}<div class="pill" style="background:transparent;color:var(--muted)">עריכה</div></div>`
+}
+
+function simpleEditor (kind, r) {
+  const cfg = SIMPLE[kind]
+  const body = cfg.fields.map(f => `<div class="field"><label>${f.label}</label>` +
+    (f.type === 'area'
+      ? `<textarea id="s_${f.k}" ${f.big ? 'style="min-height:280px"' : ''}>${esc(r[f.k])}</textarea>`
+      : `<input id="s_${f.k}" value="${esc(r[f.k])}" ${f.keyish && r[cfg.key] ? 'readonly' : ''}>`) +
+    '</div>').join('')
+  return `<div class="editor">${body}
+    <div class="actions">
+      <button class="primary" onclick="saveSimple('${kind}')">שמירה</button>
+      <button onclick="cancel()">ביטול</button>
+      <div class="sp"></div>
+      ${r[cfg.key] ? `<button class="ghost" style="color:var(--danger)" onclick="del('${kind}','${esc(r[cfg.key])}')">מחיקה</button>` : ''}
+    </div></div>`
+}
+
+async function saveSimple (kind) {
+  const cfg = SIMPLE[kind]
+  const row = {}
+  for (const f of cfg.fields) row[f.k] = document.getElementById('s_' + f.k).value.trim() || null
+  if (!row[cfg.key]) return toast('חסר מזהה')
+  const orig = DATA[kind].find(x => x[cfg.key] === row[cfg.key])
+  if (orig) { row.sort_order = orig.sort_order; if ('is_public' in orig) row.is_public = orig.is_public }
+  const res = await api({ action: 'save', kind, row })
+  if (res.error) return toast(res.error)
+  toast('נשמר'); await load()
+}
+
+// ---------- כללי ----------
+function edit (kind, id) { EDITING = kind + ':' + id; render(); setTimeout(liveLint, 50) }
+function cancel () { EDITING = null; render() }
+function addNew (kind) {
+  EDITING = kind + ':'
+  const blank = { reply_id: '', text_he: '', priority: 50, escalates: false, triggers_any: [], triggers_none: [], why: '', is_active: true }
+  DATA[kind] = [...DATA[kind], kind === 'replies' ? blank : {}]
+  render()
+}
+async function del (kind, id) {
+  if (!confirm('למחוק את "' + id + '"? אין ביטול.')) return
+  const res = await api({ action: 'delete', kind, key_value: id })
+  if (res.error) return toast(res.error)
+  toast('נמחק'); await load()
+}
+
+function render () {
+  const v = document.getElementById('view')
+  if (TAB === 'events') {
+    v.innerHTML = `<div class="toolbar"><h2>שינויים אחרונים</h2></div><div class="events">` +
+      (DATA.events || []).map(e => `<div>${new Date(e.at).toLocaleString('he-IL')} · ${esc(e.who)} · ${esc(e.action)} · <b>${esc(e.row_key)}</b> <span style="opacity:.6">${esc(e.table_name)}</span></div>`).join('') +
+      '</div>'
+    return
+  }
+
+  const isReplies = TAB === 'replies'
+  const cfg = isReplies ? { title: 'נוסחי הבוט', add: 'נוסח חדש' } : SIMPLE[TAB]
+  let list = DATA[TAB] || []
+  if (FILTER) {
+    const q = FILTER.toLowerCase()
+    list = list.filter(r => JSON.stringify(r).toLowerCase().includes(q))
+  }
+
+  v.innerHTML = `<div class="toolbar">
+      <h2>${cfg.title}</h2>
+      <span class="count">${list.length}</span>
+      <input class="search" placeholder="חיפוש" value="${esc(FILTER)}" oninput="FILTER=this.value;render()">
+      <button class="primary" onclick="addNew('${TAB}')">${cfg.add}</button>
+    </div>` +
+    (list.length ? list.map(r => isReplies ? replyRow(r) : simpleRow(TAB, r)).join('')
+                 : '<div class="empty">אין עדיין כלום כאן</div>')
+}
+
+document.getElementById('pw').addEventListener('keydown', e => { if (e.key === 'Enter') login() })
+if (KEY) login()
+</script>
+</body>
+</html>
